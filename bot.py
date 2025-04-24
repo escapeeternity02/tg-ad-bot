@@ -1,4 +1,3 @@
-
 import os
 import re
 import json
@@ -6,10 +5,26 @@ import time
 import random
 import asyncio
 import logging
+import threading
 from datetime import datetime, timedelta
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from telethon import TelegramClient, events
 from telethon.tl.functions.messages import GetHistoryRequest
 from aiohttp import ClientSession
+
+# Fake HTTP server to keep Render Web Service alive
+def run_fake_server():
+    class SimpleHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'Telegram bot is running.')
+
+    port = int(os.environ.get('PORT', 10000))
+    server = HTTPServer(('', port), SimpleHandler)
+    server.serve_forever()
+
+threading.Thread(target=run_fake_server).start()
 
 # Configuration
 SESSION_NAME = "session1"
