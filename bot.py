@@ -100,17 +100,22 @@ async def main():
         print(f"[ERROR] Session file not found: {session_path}")
         return
 
-    if not AD_BOT_TOKEN or not LOG_GROUP_USERNAME:
-        print("[ERROR] Missing environment variables AD_BOT_TOKEN or LOG_GROUP_USERNAME.")
+    if not AD_BOT_TOKEN:
+        print("[ERROR] Missing AD_BOT_TOKEN environment variable")
+        return
+    if not LOG_GROUP_USERNAME:
+        print("[ERROR] Missing LOG_GROUP_USERNAME environment variable")
         return
 
     with open(session_path, "r") as f:
         credentials = json.load(f)
 
+    print("[DEBUG] Credentials loaded. Connecting to Telegram...")
+
     client = TelegramClient(os.path.join(SESSION_FOLDER, SESSION_NAME), credentials['api_id'], credentials['api_hash'])
     await client.start()
 
-    print("[READY] Logged in and running!")
+    print("[READY] Logged in and running.")
     ad_message = await get_saved_message(client)
 
     if not ad_message:
