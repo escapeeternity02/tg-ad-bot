@@ -12,7 +12,7 @@ from telethon import TelegramClient, events
 from telethon.tl.functions.messages import GetHistoryRequest
 from aiohttp import ClientSession
 
-# Fake HTTP server to keep Render Web Service alive
+# ==== Fake server to keep Render alive ====
 def run_fake_server():
     class SimpleHandler(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -26,26 +26,23 @@ def run_fake_server():
 
 threading.Thread(target=run_fake_server).start()
 
-# Configuration
+# ==== Configuration ====
 SESSION_NAME = "session1"
 SESSION_FOLDER = "sessions"
 LOG_FILE = "interactions.log"
 MAX_DMS_PER_HOUR = 15
 DM_DELAY_RANGE = (20, 60)
-AD_BOT_TOKEN = "7639431422:AAFcVuK4QNXAq9y_u2qF_PqFB6fa5Zr5j8I"
-LOG_GROUP_USERNAME = "@AdvertisementLogs"
+AD_BOT_TOKEN = os.environ.get("AD_BOT_TOKEN")  # Use environment variable
+LOG_GROUP_USERNAME = os.environ.get("LOG_GROUP_USERNAME")  # Also from environment
 
-# Keywords to look for
 KEYWORDS = [
     "need netflix", "i need netflix", "netflix need", "nf need",
     "need nf", "netflix screen need", "need netflix screen", "need 1 month"
 ]
 
-# Prepare paths and logger
+# ==== Prepare paths and logger ====
 os.makedirs(SESSION_FOLDER, exist_ok=True)
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format='%(asctime)s - %(message)s')
-
-# Track DM rate limit
 dm_timestamps = []
 
 async def send_bot_message(text):
@@ -85,7 +82,12 @@ async def handle_reply(event):
     await send_bot_message(formatted)
 
 async def main():
-    with open(os.path.join(SESSION_FOLDER, f"{SESSION_NAME}.json"), "r") as f:
+    session_path = os.path.join(SESSION_FOLDER, f"{SESSION_NAME}.json")
+    if not os.path.exists(session_path):
+        print(f"[!] Session file not found: {session_path}")
+        return
+
+    with open(session_path, "r") as f:
         credentials = json.load(f)
 
     client = TelegramClient(os.path.join(SESSION_FOLDER, SESSION_NAME), credentials['api_id'], credentials['api_hash'])
